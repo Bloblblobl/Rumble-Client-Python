@@ -13,7 +13,7 @@ class Client(object):
         :return:
         """
         params = dict(username=username, password=password, handle=handle)
-        url = self.base_url + '/register'
+        url = self.base_url + '/user'
         r = requests.post(url=url, params=params)
         r.raise_for_status()
         return r.json()
@@ -23,7 +23,7 @@ class Client(object):
         :return:
         """
         params = dict(username=username, password=password)
-        url = self.base_url + '/login'
+        url = self.base_url + '/active_user'
         r = requests.post(url=url, params=params)
         r.raise_for_status()
         self.user_auth = r.json()['user_auth']
