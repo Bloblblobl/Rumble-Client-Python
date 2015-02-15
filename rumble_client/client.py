@@ -28,6 +28,15 @@ class Client(object):
         r.raise_for_status()
         self.user_auth = r.json()['user_auth']
         
+    def logout(self):
+        """
+        :return:
+        """
+        url = self.base_url + '/active_user'
+        headers = dict(Authorization=self.user_auth)
+        r = requests.delete(url=url, headers=headers)
+        r.raise_for_status()
+        
     def send_message(self, name, message):
         """
         :return:
