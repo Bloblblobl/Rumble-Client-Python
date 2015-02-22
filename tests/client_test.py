@@ -61,6 +61,9 @@ class ClientTest(TestCase):
         self._login_test_user()
         self.client.create_room('room0')
 
+    def test_create_room_unauthorize_user(self):
+        self.client.create_room('room0')
+
     #
     # def test_register_success(self):
     #     with self.conn:
