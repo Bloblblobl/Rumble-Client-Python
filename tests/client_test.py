@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 import os
+import threading
 import time
 import json
 from unittest import TestCase
@@ -17,27 +18,32 @@ server_dir = os.path.join(script_dir, '../../Rumble-Server/rumble_server')
 
 sys.path.insert(0, server_dir)
 
+import api
 import server
+
+def start_server():
+    db_file = os.path.join(os.environ['TEMP'], 'rumble.db')
+    if os.path.isfile(db_file):
+        os.remove(db_file)
+    cmd = 'sqlite3 {} < {}/rumble_schema.sql'.format(db_file, server_dir)
+    os.system(cmd)
+
+    server.db_file = db_file
+    # Reset singleton every time
+    server.get_instance()
+
+    host = 'localhost'
+    api.the_app.run(host=host, port=6666)
 
 class ClientTest(TestCase):
     @classmethod
     def setUpClass(cls):
-        db_file = os.path.join(os.environ['TEMP'], 'rumble.db')
-        if os.path.isfile(db_file):
-            os.remove(db_file)
-        cmd = 'sqlite3 {} < {}/rumble_schema.sql'.format(db_file, server_dir)
-        os.system(cmd)
-
-        # Reset singleton every time
-        cls.server = server.get_instance()
-        print cls.server
-
+        threading.Thread(target=start_server).start()
 
     def setUp(self):
         # self.bad_auth = Headers()
         # self.bad_auth['Authorization'] = 'No such user'
-        self.client = Client('http://rumble.pythonanywhere.com')
-        pass
+        self.client = Client('http://localhost:6666')
 
     def tearDown(self):
         if self.client.user_auth != None:
@@ -48,14 +54,14 @@ class ClientTest(TestCase):
         try:
             self.client.register(username, password, handle)
         except Exception as e:
-            pass
+            raise
 
     def _login_test_user(self, username='saar', password='passwurd', handle='Saar'):
         self._register_test_user(username, password, handle)
         try:
             self.client.login(username, password)
         except Exception as e:
-            pass
+            raise
 
     def test_create_room_success(self):
         self._login_test_user()
