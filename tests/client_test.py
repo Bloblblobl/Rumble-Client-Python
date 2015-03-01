@@ -65,12 +65,26 @@ class ClientTest(TestCase):
 
     def test_create_room_success(self):
         self._login_test_user()
-        self.client.create_room('room0')
+        response = self.client.create_room('room0')
+        self.assertEqual(200, response.status_code)
 
     def test_create_room_unauthorize_user(self):
-        self.client.create_room('room0')
+        response = self.client.create_room('room0')
+        self.assertEqual(500, response.status_code)
 
-    #
+    def test_create_room_already_exists(self):
+        self._login_test_user()
+        self.client.create_room('room0')
+        response = self.client.create_room('room0')
+        self.assertEqual(500, response.status_code)
+
+    def test_destroy_room_success(self):
+        self._login_test_user()
+        self.client.create_room('room0')
+        response = self.client.destroy_room('room0')
+        self.assertEqual(200, response.status_code)
+
+
     # def test_register_success(self):
     #     with self.conn:
     #         cur = self.conn.cursor()
