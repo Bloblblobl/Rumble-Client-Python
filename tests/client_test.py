@@ -20,6 +20,10 @@ sys.path.insert(0, server_dir)
 
 import api
 import server
+from multiprocessing import Process
+
+
+port = 8888
 
 def start_server():
     db_file = os.path.join(os.environ['TEMP'], 'rumble.db')
@@ -33,22 +37,21 @@ def start_server():
     server.get_instance()
 
     host = 'localhost'
-    api.the_app.run(host=host, port=6666)
+    api.the_app.run(host=host, port=port)
 
 class ClientTest(TestCase):
     @classmethod
-    def setUpClass(cls):
-        threading.Thread(target=start_server).start()
 
     def setUp(self):
-        # self.bad_auth = Headers()
-        # self.bad_auth['Authorization'] = 'No such user'
-        self.client = Client('http://localhost:6666')
+        self.p = Process(target=start_server)
+        self.p.start()
+        self.client = Client('http://localhost:{}'.format(port))
 
     def tearDown(self):
         if self.client.user_auth != None:
             self.client.logout()
             self.client.user_auth = None
+        self.p.terminate()
 
     def _register_test_user(self, username='saar', password='passwurd', handle='Saar'):
         try:
@@ -70,19 +73,57 @@ class ClientTest(TestCase):
 
     def test_create_room_unauthorize_user(self):
         response = self.client.create_room('room0')
-        self.assertEqual(500, response.status_code)
+        self.assertEqual(401, response.status_code)
 
     def test_create_room_already_exists(self):
         self._login_test_user()
         self.client.create_room('room0')
         response = self.client.create_room('room0')
-        self.assertEqual(500, response.status_code)
+        self.assertEqual(400, response.status_code)
 
     def test_destroy_room_success(self):
         self._login_test_user()
         self.client.create_room('room0')
         response = self.client.destroy_room('room0')
         self.assertEqual(200, response.status_code)
+
+    def test_destroy_room_unauthorize_user(self):
+        self.client.create_room('room0')
+        response = self.client.destroy_room('room0')
+        self.assertEqual(401, response.status_code)
+
+    def test_destroy_room_does_not_exist(self):
+        self._login_test_user()
+        response = self.client.destroy_room('room0')
+        self.assertEqual(404, response.status_code)
+
+    def test_join_room_success(self):
+        self._login_test_user()
+        response = self.client.create_room('room0')
+        self.assertEqual(200, response.status_code)
+        response = self.client.join_room('room0')
+        self.assertEqual(200, response.status_code)
+
+    def test_join_room_does_not_exist(self):
+        self._login_test_user()
+        response = self.client.join_room('room0')
+        self.assertEqual(404, response.status_code)
+
+    def test_leave_room_success(self):
+        self._login_test_user()
+        response = self.client.create_room('room0')
+        self.assertEqual(200, response.status_code)
+        response = self.client.join_room('room0')
+        self.assertEqual(200, response.status_code)
+        response = self.client.leave_room('room0')
+        self.assertEqual(200, response.status_code)
+
+    def test_leave_room_not_joined(self):
+        self._login_test_user()
+        response = self.client.create_room('room0')
+        self.assertEqual(200, response.status_code)
+        response = self.client.leave_room('room0')
+        self.assertEqual(404, response.status_code)
 
 
     # def test_register_success(self):
