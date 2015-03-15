@@ -84,10 +84,10 @@ class Client(object):
         url = self.base_url + '/rooms'
         headers = dict(Authorization=self.user_auth)
         r = requests.get(url=url, headers=headers)
-        return r
+        return r.json()
     
     def get_room_members(self, name):
         url = self.base_url + '/room_members/' + name
         headers = dict(Authorization=self.user_auth)
         r = requests.get(url=url, headers=headers)
-        return r
+        return r.json()
