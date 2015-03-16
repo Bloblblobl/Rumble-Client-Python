@@ -3,5 +3,5 @@ Python-based Rumble Client
 
 Register and Login at the Public Server: 
 ```
-bloblblobl.pythonanywhere.com
+rumble.pythonanywhere.com
 ```
