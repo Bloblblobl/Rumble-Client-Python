@@ -1,17 +1,12 @@
 from datetime import datetime, timedelta
 import os
-import threading
 import time
-import json
 from unittest import TestCase
-import uuid
-
-from flask import app
-from mock import Mock
 import sys
 import sqlite3
+
 from retrying import retry
-from werkzeug.datastructures import Headers
+
 from rumble_client.client import Client
 
 
@@ -28,13 +23,12 @@ from multiprocessing import Process
 port = 8888
 db_file = os.path.join(os.environ['TEMP'], 'rumble.db')
 
-def start_server():
-    server.db_file = db_file
-    # Reset singleton every time
-    server.get_instance()
 
+def start_server():
     host = 'localhost'
+    api.the_app = api.create_app(db_file)
     api.the_app.run(host=host, port=port)
+
 
 @retry(stop_max_attempt_number=10, wait_fixed=500)
 def remove_db(db_file):
