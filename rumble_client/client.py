@@ -1,4 +1,5 @@
 from datetime import datetime
+import json
 import requests
 import requests.exceptions
 
@@ -13,7 +14,7 @@ class Client(object):
         """
         params = dict(username=username, password=password, handle=handle)
         url = self.base_url + '/user'
-        r = requests.post(url=url, data=params)
+        r = requests.post(url=url, params=params)
         return r.json()
 
     def login(self, username, password):
@@ -22,7 +23,7 @@ class Client(object):
         """
         params = dict(username=username, password=password)
         url = self.base_url + '/active_user'
-        r = requests.post(url=url, data=params)
+        r = requests.post(url=url, params=params)
         self.user_auth = r.json()['user_auth']
         return r
         
